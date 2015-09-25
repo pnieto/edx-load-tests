@@ -116,7 +116,7 @@ class UserStateClient(object):
                     end_time=end_time,
                     exception=e
                 )
-                self._ddog_histogram(end_time, 'failure_response_time', total_time)
+                self._ddog_histogram(end_time, '{}.failure_response_time'.format(name), total_time)
             else:
                 end_time = time.time()
                 total_time = (end_time - start_time) * 1000
@@ -128,7 +128,7 @@ class UserStateClient(object):
                     end_time=time.time(),
                     response_length=0
                 )
-                self._ddog_histogram(end_time, 'success_response_time', total_time)
+                self._ddog_histogram(end_time, '{}.success_response_time'.format(name), total_time)
                 return result
         return wrapper
 
