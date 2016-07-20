@@ -4,7 +4,7 @@ import string
 
 from locust import task
 
-from lms import LmsTasks
+from lms.base import LmsTasks
 
 
 # keep track of thread ids created during a test, so they can be used to formulate read requests and replies.

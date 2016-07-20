@@ -3,9 +3,15 @@ import json
 from locust import HttpLocust, task, TaskSet
 from locust.clients import HttpSession
 
-from course_discovery import config
 from helpers.api import LocustEdxRestApiClient
 
+from helpers import settings
+settings.init(__name__)
+
+# cleanup settings
+if settings.data.get('COURSE_DISCOVERY_API_URL') is None:
+    settings.data['COURSE_DISCOVERY_API_URL'] = '%s/api/v1/' % \
+        settings.data['COURSE_DISCOVERY_SERVICE_URL'].strip('/')
 
 class CourseDiscoveryTaskSet(TaskSet):
     CATALOG_ID = 1
@@ -52,6 +58,6 @@ class CourseDiscoveryApiLocust(HttpLocust):
     def __init__(self):
         super(CourseDiscoveryApiLocust, self).__init__()
         self.client = LocustEdxRestApiClient(
-            config.COURSE_DISCOVERY_API_URL,
+            settings.data['COURSE_DISCOVERY_API_URL'],
             session=HttpSession(base_url=self.host)
         )

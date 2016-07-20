@@ -14,8 +14,16 @@ sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'helper
 
 from api import LocustEdxRestApiClient
 from auto_auth_tasks import AutoAuthTasks
-from config import CREDENTIAL_API_URL, CREDENTIAL_SERVICE_URL, JWT, LMS_ROOT_URL, PROGRAM_ID, USERNAME
 
+from helpers import settings
+settings.init(__name__)
+
+# cleanup settings
+settings.data['CREDENTIAL_SERVICE_URL'] = \
+    settings.data['CREDENTIAL_SERVICE_URL'].strip('/')
+if settings.data.get('CREDENTIAL_API_URL') is None:
+    settings.data['CREDENTIAL_API_URL'] = '%s/api/v1/' % \
+        settings.data['CREDENTIAL_SERVICE_URL']
 
 class CredentialTaskSet(AutoAuthTasks):
     """Tasks exercising Credential functionality."""
@@ -32,7 +40,7 @@ class CredentialTaskSet(AutoAuthTasks):
         Default locust client will remain same for using auto_auth().
         """
         return LocustEdxRestApiClient(
-            CREDENTIAL_API_URL,
+            settings.data['CREDENTIAL_API_URL'],
             session=HttpSession(base_url=self.locust.host),
             jwt=self._get_token()
         )
@@ -45,42 +53,48 @@ class CredentialTaskSet(AutoAuthTasks):
         username_suffix = uuid.uuid4().hex[:30 - len(username_prefix)]
         payload = {
             'preferred_username': username_prefix + username_suffix,
-            'iss': JWT["JWT_ISSUER"],
-            'aud': JWT["JWT_AUDIENCE"],
+            'iss': settings.data['JWT_ISSUER'],
+            'aud': settings.data['JWT_AUDIENCE'],
             'iat': datetime.datetime.utcnow(),
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=JWT["JWT_EXPIRATION_DELTA"]),
+            'exp': datetime.datetime.utcnow() + \
+                   datetime.timedelta(
+                       days=settings.data['JWT_EXPIRATION_DELTA']),
             'administrator': True
         }
-        return jwt.encode(payload, JWT["JWT_SECRET_KEY"])
+        return jwt.encode(payload, settings.data['JWT_SECRET_KEY'])
 
     @task(1000)
     def list_user_credential_with_username(self):
         """ Get all credentials for a user."""
-        self.user_credential_client.user_credentials.get(username=USERNAME)
+        self.user_credential_client.user_credentials.get(
+            username=settings.data['USERNAME'])
 
     @task
     def list_user_credential_with_username_and_status(self):
         """ Get credentials having awarded status for a user."""
-        self.user_credential_client.user_credentials.get(username=USERNAME, status="awarded")
+        self.user_credential_client.user_credentials.get(
+            username=settings.data['USERNAME'], status="awarded")
 
     @task
     def list_program_credential_with_programs_id(self):
         """ Get credentials of any any status for a program id."""
-        self.user_credential_client.program_credentials.get(program_id=PROGRAM_ID)
+        self.user_credential_client.program_credentials.get(
+            program_id=settings.data['PROGRAM_ID'])
 
     @task
     def list_program_credential_with_program_id_and_status(self):
         """ Get credentials having awarded status for a program id."""
-        self.user_credential_client.program_credentials.get(program_id=PROGRAM_ID, status="awarded")
+        self.user_credential_client.program_credentials.get(
+            program_id=settings.data['PROGRAM_ID'], status="awarded")
 
     @task
     def post_credential_with_attribute(self):
         # We are creating new user on LMS for generating its credentials,
         # user information will be used in rendering of credentials.
-        self.auto_auth(hostname=LMS_ROOT_URL)
+        self.auto_auth(hostname=settings.data['LMS_ROOT_URL'])
         data = {
             "username": self._username,
-            "credential": {"program_id": PROGRAM_ID},
+            "credential": {"program_id": settings.data['PROGRAM_ID']},
             "attributes": [{"name": "whitelist_reason", "value": "Reason for whitelisting."}]
         }
         user_credential = self.user_credential_client.user_credentials.post(
@@ -93,10 +107,10 @@ class CredentialTaskSet(AutoAuthTasks):
     def post_credential_without_attribute(self):
         # We are creating new user on LMS for generating its credentials,
         # user information will be used in rendering of credentials.
-        self.auto_auth(hostname=LMS_ROOT_URL)
+        self.auto_auth(hostname=settings.data['LMS_ROOT_URL'])
         data = {
             "username": self._username,
-            "credential": {"program_id": PROGRAM_ID},
+            "credential": {"program_id": settings.data['PROGRAM_ID']},
             "attributes": []
         }
         user_credential = self.user_credential_client.user_credentials.post(
@@ -137,8 +151,13 @@ class CredentialTaskSet(AutoAuthTasks):
             return
 
         credential_uuid = random.choice(self._user_credentials)[1]
-        self.client.get("{}/credentials/{}/".format(CREDENTIAL_SERVICE_URL, credential_uuid.replace("-", "")),
-                        name="/credentials/[uuid]")
+        self.client.get(
+            "{}/credentials/{}/".format(
+                settings.data['CREDENTIAL_SERVICE_URL'],
+                credential_uuid.replace("-", ""),
+            ),
+            name="/credentials/[uuid]",
+        )
 
 
 class CredentialUser(HttpLocust):

@@ -5,27 +5,13 @@ By default, this tests loading a relatively small course. I recommend
 exporting a large course from edX and using it here.
 """
 
-import os
 import random
 import time
 
 from locust import HttpLocust, TaskSet, task, events
 
-# Basic auth
-BASIC_AUTH_CREDENTIALS = None
-if 'BASIC_AUTH_USER' in os.environ and 'BASIC_AUTH_PASSWORD' in os.environ:
-    BASIC_AUTH_CREDENTIALS = (os.environ['BASIC_AUTH_USER'],
-                              os.environ['BASIC_AUTH_PASSWORD'])
-
-# Existing user in the CMS
-CMS_USER_EMAIL = os.environ.get('CMS_USER_EMAIL')
-CMS_USER_PASSWORD = os.environ.get('CMS_USER_PASSWORD')
-
-# Specify an alternate course tarball via an environment variable.
-TEST_FILE = os.environ.get('CMS_TEST_FILE', 'Demo_Course.0_c9xL.tar.gz')
-
-NUM_PARALLEL_COURSES = 5
-
+from helpers import settings
+settings.init(__name__)
 
 class CourseImport(TaskSet):
     "Course import task set -- creates course and imports tarballs."
@@ -35,19 +21,23 @@ class CourseImport(TaskSet):
 
         self.login()
 
-        for i in xrange(NUM_PARALLEL_COURSES):
+        for i in xrange(settings.data['NUM_PARALLEL_COURSES']):
             self.create_course(i)
 
     def login(self):
         "Log in to CMS."
 
-        if BASIC_AUTH_CREDENTIALS:
-            self.client.auth = BASIC_AUTH_CREDENTIALS
+	if 'BASIC_AUTH_USER' in settings.data and \
+           settings.data['BASIC_AUTH_USER'] is not None:
+            self.client.auth = (
+                settings.data['BASIC_AUTH_USER'],
+                settings.data['BASIC_AUTH_PASS'],
+                )
         self.client.get("/logout")
         self.client.get("/signin")
         response = self.client.post("/login_post",
-                                    data={'email': CMS_USER_EMAIL,
-                                          'password': CMS_USER_PASSWORD,
+                                    data={'email': settings.data['CMS_USER_EMAIL'],
+                                          'password': settings.data['CMS_USER_PASSWORD'],
                                           'honor_code': 'true',
                                           'csrfmiddlewaretoken':
                                           self.client.cookies['csrftoken']},
@@ -88,7 +78,7 @@ class CourseImport(TaskSet):
     def import_course(self, num):
         "Import a course over run number 'num'."
 
-        with open(TEST_FILE, "rb") as test_fp:
+        with open(settings.data['TEST_FILE'], "rb") as test_fp:
             cid = "course-v1:LocustX+Soup101+X{0:02d}".format(num)
             import_url = "/import/{0}".format(cid)
             ifname = "some{0:08d}.tar.gz".format(int(random.random() * 1e8))
@@ -130,7 +120,7 @@ class CourseImport(TaskSet):
     def import_random_course(self):
         "Import a course, overwriting a random course."
 
-        num = random.randrange(NUM_PARALLEL_COURSES)
+        num = random.randrange(settings.data['NUM_PARALLEL_COURSES'])
         self.import_course(num)
 
 

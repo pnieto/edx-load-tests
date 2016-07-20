@@ -9,6 +9,8 @@ from locust.exception import LocustError
 from helpers.api import LocustEdxRestApiClient
 from programs.config import PROGRAMS_API_URL, JWT_AUDIENCE, JWT_ISSUER, JWT_EXPIRATION_DELTA, JWT_SECRET_KEY
 
+from helpers import settings
+settings.init(__name__)
 
 class ProgramsTaskSet(TaskSet):
     """Tasks exercising Programs functionality."""

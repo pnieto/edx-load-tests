@@ -1,21 +1,5 @@
 """
 Performance tests for enrollment API.
-
-To start the test server on the host "www.example.com":
-
-    >>> BASIC_AUTH_USER=user BASIC_AUTH_PASSWORD=password locust --host https://www.example.com
-
-Then visit http://localhost:8089/
-
-You can omit basic auth credentials if the test server is not protected by basic auth.
-
-This test REQUIRES that auto auth is enabled in the test environment.
-To enable auto auth, set the feature flag `AUTOMATIC_AUTH_FOR_TESTING` to True.
-
-By default, the test uses the demo course to enroll/unenroll students.
-You can override this by setting the environment var `COURSE_ID_LIST` to a comma-separated list
-of slash-separated course keys.
-
 """
 
 import os
@@ -24,15 +8,8 @@ import uuid
 import random
 from locust import HttpLocust, TaskSet, task
 
-
-# Basic auth
-BASIC_AUTH_CREDENTIALS = None
-if 'BASIC_AUTH_USER' in os.environ and 'BASIC_AUTH_PASSWORD' in os.environ:
-    BASIC_AUTH_CREDENTIALS = (os.environ['BASIC_AUTH_USER'], os.environ['BASIC_AUTH_PASSWORD'])
-
-
-# Course ID
-COURSE_ID_LIST = os.environ.get('COURSE_ID_LIST', 'edX/DemoX/Demo_Course').split(",")
+from helpers import settings
+settings.init(__name__)
 
 EMAIL_USERNAME = "success"
 EMAIL_URL = "simulator.amazonses.com"
@@ -59,8 +36,11 @@ class EnrollmentApi(object):
         self.hostname = hostname
         self.client = client
 
-        if BASIC_AUTH_CREDENTIALS is not None:
-            self.client.auth = BASIC_AUTH_CREDENTIALS
+        if settings.data.get('BASIC_AUTH_USER') is not None:
+            self.client.auth = (
+                settings.data['BASIC_AUTH_USER'],
+                settings.data['BASIC_AUTH_PASS'],
+            )
 
     def get_student_enrollments(self):
         """Retrieve enrollment info for the currently logged in user. """
@@ -171,13 +151,13 @@ class UserBehavior(TaskSet):
             self.auto_auth()
 
             # Ensure that the user is enrolled in all the courses
-            for course_id in COURSE_ID_LIST:
+            for course_id in settings.data['COURSE_ID_LIST']:
                 self.api.enroll(course_id)
 
         @task
         def user_enrollment_status(self):
             """Check a user's enrollment status in a course. """
-            course_id = random.choice(COURSE_ID_LIST)
+            course_id = random.choice(settings.data['COURSE_ID_LIST'])
 
             try:
                 self.api.get_user_enrollment_status(self.username, course_id)

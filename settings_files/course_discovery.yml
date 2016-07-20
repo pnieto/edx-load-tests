@@ -1,0 +1,16 @@
+---
+# The URL for the service itself, not the API
+COURSE_DISCOVERY_SERVICE_URL: http://localhost:8008
+
+# Use this to override the API URL.  Otherwise it is derived from the
+# service URL above.
+#
+#COURSE_DISCOVERY_API_URL: http://localhost:8008/api/v1/
+
+# TODO: the following JWT parameters are completely unused in the code,
+# so make use of them or delete this comment.
+#
+#JWT_AUDIENCE: course-discovery
+#JWT_EXPIRATION_DELTA: 1
+#JWT_ISSUER: course-discovery
+#JWT_SECRET_KEY: 'course-discovery-jwt-secret-key

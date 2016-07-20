@@ -1,0 +1,8 @@
+---
+# The URL for the service itself, not the API
+PROGRAMS_SERVICE_URL: http://localhost:8004
+
+# Use this to override the API URL.  Otherwise it is derived from the
+# service URL above.
+#
+#PROGRAMS_API_URL: http://localhost:8004/api/v1/
