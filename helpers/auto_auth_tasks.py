@@ -46,6 +46,7 @@ class AutoAuthTasks(TaskSet):
             verify=verify_ssl
         )
 
+        print response.json
         json_response = json.loads(response.text)
         self._username = json_response['username']
         self._email = json_response['email']

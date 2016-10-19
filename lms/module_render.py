@@ -70,7 +70,7 @@ class ModuleRenderTasks(LmsTasks):
             name='handler:capa:{}'.format(handler),
         )
 
-    @task(13)
+    @task(28)
     def goto_position(self):
         """
         POST to goto_position in our course, using random inputs based on course data.
@@ -109,7 +109,7 @@ class ModuleRenderTasks(LmsTasks):
         """
         return self._post_capa_handler('problem_save')
 
-    @task(9)
+    @task(0)
     def get_transcript(self):
         """
         Exercises transcript retrieval, using random inputs based on course data.
@@ -120,7 +120,7 @@ class ModuleRenderTasks(LmsTasks):
             name="handler:video:get_transcript"
         )
 
-    @task(20)
+    @task(0)
     def save_user_state(self):
         """
         Exercises user state persistence, using random inputs based on course data.
