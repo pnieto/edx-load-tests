@@ -10,22 +10,58 @@ Getting Started
 
 If you have not already done so, create and activate a `virtualenv <https://virtualenvwrapper.readthedocs.org/en/latest/>`_. Unless otherwise stated, assume all commands below are executed within said virtualenv.
 
-Next, install load testing requirements.
+Prepare a load test using its make target.  This should install pip
+dependencies and a settings file. For example:
 
-.. code-block:: bash
+.. code-block::
 
-    $ pip install -r requirements.txt
+    $ make <test-name>
 
-Start Locust by providing the Locust CLI with a target host and pointing it to the location of your desired locustfile. For example,
+If you are testing against a specific environment, such as devstack:
 
-.. code-block:: bash
+.. code-block::
 
-    $ locust --host=http://localhost:8009 -f programs
+    $ LT_ENV=devstack make <test-name>
+
+Optionally modify the settings:
+
+.. code-block::
+
+    $ editor settings_files/<test-name>.yml
+
+Start Locust by supplying a target host and pointing it to the location of your
+desired load test module:
+
+.. code-block::
+
+    $ locust --host=http://localhost:8009 -f loadtests/<test-name>
 
 Repository Structure
 --------------------
 
-Tests are organized into top-level packages. For examples, see ``csm`` and ``programs``. A module called ``locustfile.py`` is included inside each test package, within which a subclass of the `Locust class <http://docs.locust.io/en/latest/writing-a-locustfile.html#the-locust-class>`_ is defined. This subclass is imported into the test package's ``__init__.py`` to facilitate discovery at runtime.
++--------------------------------------------+----------------------------------------------------+
+| path                                       | description                                        |
++============================================+====================================================+
+| ``helpers/*``                              | *generally* helpful modules for writing load tests |
++--------------------------------------------+----------------------------------------------------+
+| ``util/*``                                 | standalone scripts and data                        |
++--------------------------------------------+----------------------------------------------------+
+| ``loadtests/<test-name>/*``                | a load test module                                 |
++--------------------------------------------+----------------------------------------------------+
+| ``loadtests/<test-name>/__init__.py``      | contains code which exposes a Locust subclass      |
++--------------------------------------------+----------------------------------------------------+
+| ``loadtests/<test-name>/requirements.txt`` | all pip requirements for running this load test    |
++--------------------------------------------+----------------------------------------------------+
+| ``settings_files/<test-name>.yml``         | settings for ``<test-name>``                       |
++--------------------------------------------+----------------------------------------------------+
+
+Load test modules are organized under the top level ``loadtests`` directory. A
+``locustfile.py`` is included inside each load test module, within which a
+subclass of the `Locust class
+<http://docs.locust.io/en/latest/writing-a-locustfile.html#the-locust-class>`_
+is defined. This subclass is imported into the test package's ``__init__.py``
+to facilitate discovery at runtime.  Settings for each test are read from
+``settings_files/<testname>.yml``, and examples are provided.
 
 License
 -------
@@ -49,9 +85,10 @@ Reporting Security Issues
 
 Please do not report security issues in public. Please email security@edx.org.
 
-Mailing List and IRC Channel
+Mailing List and Slack Channel
 ----------------------------
 
-You can discuss this code in the `edx-code Google Group`__ or in the ``#edx-code`` IRC channel on Freenode.
+You can discuss this code in the `edx-code Google Group` or in the ``#general`` slack channel.
 
-__ https://groups.google.com/forum/#!forum/edx-code
+* https://groups.google.com/forum/#!forum/edx-code
+* http://openedx-slack-invite.herokuapp.com/

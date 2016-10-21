@@ -4,3 +4,6 @@
 *.log
 results/
 data/
+
+# ignore all settings (which might contain secrets)
+settings_files/*.yml

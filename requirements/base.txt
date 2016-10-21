@@ -1,12 +1,14 @@
-# Packages required to run load tests
-# Using -e for now because none of these packages have released code
-# properly.  Once they have done releases with actualy versions we should
-# pin these packages correctly.
--e git+https://github.com/edx/opaque-keys.git@9f07da1abf699d10bc3252d3081017e8aa37c302#egg=opaque-keys
+# bare minimum for running load tests.  Individual load test requirements files
+# should import this file.
 
+# load testing software
 locustio==0.7.3
-edx-rest-api-client==1.4.0
-jupyter
-runipy
-seaborn
+
+# common loadtest requirements
+edx-opaque-keys==0.3.3
 lazy
+
+# helpers use these
+edx-rest-api-client==1.6.0
+PyYAML==3.11
+dogapi==1.2.1
